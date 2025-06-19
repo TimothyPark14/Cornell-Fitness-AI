@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "expo-auth-session": "~6.2.0",
+    "expo-web-browser": "~14.2.0",
+    "react-native-safe-area-context": "5.4.0"
+  }
+}
