@@ -1,0 +1,22 @@
+{
+  "name": "cornell-fitness-ai",
+  "version": "1.0.0",
+  "description": "AI-powered workout scheduling app for Cornell students",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run mobile\"",
+    "server": "cd backend && npm run dev",
+    "mobile": "cd mobile-app && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../mobile-app && npm install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
