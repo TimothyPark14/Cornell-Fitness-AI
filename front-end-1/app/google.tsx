@@ -2,20 +2,19 @@ import { Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import "../global.css";
 
-export default function Index() {
+export default function Google() {
   const router = useRouter();
   return (
     <View
       className="flex-1 items-center justify-center bg-cornell"
       style={{ padding: 20 }}
     >
-      <Text className="text-white text-5xl text-center">Cornell Fitness AI</Text>
-      <Text className="text-white text-xl text-center">Your personal gym planner</Text>
+      <Text className="text-white text-xl text-center">Assuming that the Google authentication worked</Text>
       <TouchableOpacity
         className="bg-white px-6 py-3 rounded mt-10"
-        onPress={() => router.push("/google")}
-      >
-        <Text className="text-cornell text-lg font-bold">Sign In / Log In</Text>
+        onPress={() => router.push("/register-info")}>
+      
+        <Text className="text-cornell text-lg font-bold">Register Information</Text>
       </TouchableOpacity>
     </View>
   );
