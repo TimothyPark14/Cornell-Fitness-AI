@@ -1,63 +1,57 @@
-import React from 'react';
+import { Calendar } from 'react-native-big-calendar';
+import { useRouter }  from 'expo-router';
+import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
   StyleSheet,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import week_events from '@/assets/data/weekly-schedule'
 
-export default function LoginScreen() {
-  const router = useRouter();
+export default function CalendarView() {
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#7f1d1d', '#991b1b', '#374151']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
+      <SafeAreaView style={styles.container}>
+        <LinearGradient
+          colors={['#7f1d1d', '#991b1b', '#374151']}
+          style={styles.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         >
-          <View style={styles.backgroundDecoration}>
-            <View style={[styles.circle, styles.circle1]} />
-            <View style={[styles.circle, styles.circle2]} />
-            <View style={[styles.circle, styles.circle3]} />
-          </View>
-
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <View style={styles.logoContainer}>
-                <Text style={styles.logoText}>CF</Text>
-              </View>
-              <Text style={styles.title}>Cornell Fitness AI</Text>
-              <Text style={styles.subtitle}>Train smarter. Push harder.</Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+          >
+            <View style={styles.backgroundDecoration}>
+              <View style={[styles.circle, styles.circle1]} />
+              <View style={[styles.circle, styles.circle2]} />
+              <View style={[styles.circle, styles.circle3]} />
             </View>
-
-            <View style={styles.formContainer}>
-              <TouchableOpacity 
-                style={styles.button}
-                onPress={()=> {router.push('/google')}}
-              >
-                <Text style={styles.buttonText}>SIGN IN WITH GOOGLE</Text>
-              </TouchableOpacity>
+  
+            <View style={styles.content}>
+              <Calendar
+                events={week_events}
+                height={600}
+                mode="week"   // ← this enables weekly view
+                minHour={7}
+                maxHour={21}
+                onPressEvent={(event)=>{
+                  console.log('Event pressed:', event);
+                }}
+                eventCellStyle={{
+                  backgroundColor: 'rgba(208, 117, 117, 0.3)'}}
+              />
             </View>
-
-            <Text style={styles.terms}>
-              By signing in, you agree to our <Text style={styles.link}>Terms</Text> and <Text style={styles.link}>Privacy Policy</Text>.
-            </Text>
-          </View>
-        </KeyboardAvoidingView>
-      </LinearGradient>
-    </SafeAreaView>
+          </KeyboardAvoidingView>
+        </LinearGradient>
+      </SafeAreaView>
+    
+  
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   gradient: { flex: 1 },
@@ -80,6 +74,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.64)'
   },
   header: {
     alignItems: 'center',

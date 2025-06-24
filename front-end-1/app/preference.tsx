@@ -1,77 +1,103 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Dropdown } from 'react-native-element-dropdown';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from "expo-router";
 import { useUser } from "@/context/UserContext";
 
-const CornellSignUp: React.FC = () => {
+const Preference: React.FC = () => {
   const router = useRouter();
   const [formData, setFormData] = useState<{
-    age: string;
-    gender: string;
-    height: string;
-    weight: string;
+    goal: string;
+    experience: string;
+    frequency: number;
   }>({
-    age: '',
-    gender: '',
-    height: '',
-    weight: ''
+    goal: '',
+    experience: '',
+    frequency: 0,
   });
   const [isFocus, setIsFocus] = useState(false);
   const { user, setUser } = useUser();
 
-  const handleInputChange = (field: keyof typeof formData, value: any) => {
+
+
+  // Form update handlers
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handleSubmit = () => {
-    const { age, gender, height, weight } = formData;
+  const handleSubmit = async () => {
+    console.log('Form submitted:', formData);
+    const { goal, experience, frequency } = formData;
 
-    // Convert height/weight to numbers
-    const parsedAge = Number(age);
-    const parsedHeight = Number(height);
-    const parsedWeight = Number(weight);
+    const parsedFrequency = Number(frequency);
 
-    // ✅ Basic validation
-    if (!parsedAge || !parsedHeight || !parsedWeight || !gender) {
+    // Basic validation
+    if (!goal || !experience || !parsedFrequency) {
       alert("Please fill out all fields correctly.");
       return;
     }
     if (!user || !user.email) {
       alert("Something went wrong. User not found.");
-      return;}
-    // ✅ Now update the user object
-    
-    setUser({
-      ...(user ?? {}),
-      age: parsedAge,
-      gender: gender as 'male' | 'female',
-      height: parsedHeight,
-      weight: parsedWeight,
-    });
-    console.log("User updated in context:", user.email, user.age, user.gender, user.height, user.weight); 
-    // Route to next screen
-    router.push("/preference");
+      return;
+    }
+    // Update the user object
+    const newUser = {
+      ...user,
+      goal: goal as 'weight_loss' | 'muscle_gain' | 'maintenance' | 'strength',
+      experience: experience as 'beginner' | 'intermediate' | 'advanced',
+      frequency: parsedFrequency,
+    };
+
+    // ✅ Update context
+    setUser(newUser);
+    console.log("User updated in context:", user.email, user.goal, user.experience, user.frequency);
+
+    try {
+        const response = await fetch("http://localhost:3000/api/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newUser),
+        });
+    const data = await response.json();
+    console.log("Server response:", data);
+    router.push("/calendarView");
+    // Optionally handle navigation or show a success message here
+    } catch (error) {
+        console.error("Error submitting form:", error);
+  }
   };
 
-  const genderOption = [
-    { label: 'Male', value: 'male' },
-    { label: 'Female', value: 'female' }
+
+  // Static options for dropdowns
+  const goalOptions = [
+    { label: 'Weight Loss', value: 'weight_loss' },
+    { label: 'Muscle Gain', value: 'muscle_gain' },
+    { label: 'Maintenance', value: 'maintenance' },
+    { label: 'Strength', value: 'strength' },
   ];
+  const experienceOptions = [
+    { label: 'Beginner', value: 'beginner' },
+    { label: 'Intermediate', value: 'intermediate' },
+    { label: 'Advanced', value: 'advanced' },
+  ];
+  const frequencyOptions = Array.from({ length: 5 }, (_, i) => ({
+    label: `${i + 1} day${i > 0 ? 's' : ''}`,
+    value: i + 1,
+  }));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -94,31 +120,21 @@ const CornellSignUp: React.FC = () => {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>C</Text>
-            </View>
-            <Text style={styles.title}>Cornell Fitness AI</Text>
-            <Text style={styles.subtitle}>Your personal gym planner this semester</Text>
+
         </View>
 
           {/* Form Container */}
         <View style={styles.formContainer}>
-          <TextInput
-            placeholder="Age"
-            value={formData.age}
-            onChangeText={(value) => handleInputChange('age', value)}
-            className="bg-white/10 rounded-lg px-4 py-3 mb-4 text-white text-lg"
-            placeholderTextColor="#ccc" // <-- add this
-          />
+            <Text style={styles.title}>Your Preferences</Text>
           <Dropdown
-            data={genderOption}
+            data={goalOptions}
             maxHeight={300}
             labelField="label"
             valueField="value"
-            placeholder="Select Gender"
-            value={formData.gender}
+            placeholder="Select Goal"
+            value={formData.goal}
             onChange={item => {
-              handleInputChange('gender', item.value);
+              handleInputChange('goal', item.value);
             }}
             style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
             placeholderStyle={styles.placeholderStyle}
@@ -127,25 +143,47 @@ const CornellSignUp: React.FC = () => {
             containerStyle={styles.dropdownContainer}
             activeColor="#fff1"
           />
-          <TextInput
-            placeholder="Height (cm)"
-            value={formData.height}
-            onChangeText={(value) => handleInputChange('height', value)}
-            className="bg-white/10 rounded-lg px-4 py-3 mb-4 text-white text-lg"
-            placeholderTextColor="#ccc" // <-- add this
+          <Dropdown
+            data={experienceOptions}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Experience Level"
+            value={formData.experience}
+            onChange={item => {
+              handleInputChange('experience', item.value);
+            }}
+            style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            itemTextStyle={styles.itemTextStyle}
+            containerStyle={styles.dropdownContainer}
+            activeColor="#fff1"
           />
-          <TextInput
-            placeholder="Weight (kg)"
-            value={formData.weight}
-            onChangeText={(value) => handleInputChange('weight', value)}
-            className="bg-white/10 rounded-lg px-4 py-3 mb-4 text-white text-lg"
-            placeholderTextColor="#ccc" // <-- add this
+          <Dropdown
+            data={frequencyOptions}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder="Select Frequency"
+            value={formData.frequency}
+            onChange={item => {
+              handleInputChange('frequency', item.value);
+            }}
+            style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
+            placeholderStyle={styles.placeholderStyle}
+            selectedTextStyle={styles.selectedTextStyle}
+            itemTextStyle={styles.itemTextStyle}
+            containerStyle={styles.dropdownContainer}
+            activeColor="#fff1"
           />
+
           {/* Submit Button */}
           <TouchableOpacity
             style={styles.submitButton}
             onPress={() => {
                 handleSubmit()
+                router.push("/preference")
             }}
             activeOpacity={0.9}
           >
@@ -155,7 +193,7 @@ const CornellSignUp: React.FC = () => {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              <Text style={styles.submitText}>Next</Text>
+              <Text style={styles.submitText}>Get Your Schedule</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -377,6 +415,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#fff',
   }
+  
 });
 
-export default CornellSignUp;
+export default Preference;

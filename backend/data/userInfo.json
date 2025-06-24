@@ -1,0 +1,12 @@
+[
+  {
+    "email": "hello@gmail.com",
+    "age": 21,
+    "gender": "male",
+    "height": 180,
+    "weight": 75,
+    "goal": "muscle_gain",
+    "experience": "intermediate",
+    "frequency": 5
+  }
+]

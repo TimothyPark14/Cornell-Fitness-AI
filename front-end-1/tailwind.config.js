@@ -10,6 +10,12 @@ module.exports = {
     extend: {
       colors: {
         cornell: '#B31B1B',
+        'cornell-red': '#B41B1B',
+        'cornell-light-red': '#E57373',
+        'cornell-dark-red': '#7B1E1E',
+        'cornell-white': '#FFFFFF',
+        'cornell-gray': '#B0B0B0',
+        'cornell-dark-gray': '#4B4B4B',
       },
     },
   },
