@@ -9,6 +9,9 @@ import {
   StyleSheet 
 } from 'react-native';
 import useGoogleAuth from '../hooks/useGoogleAuth';
+import WorkoutPreferencesModal from './WorkoutPreferencesModal';
+import WorkoutPlanModal from './WorkoutPlanModal';
+import OpenAIWorkoutService from '../services/OpenAIWorkoutService';
 
 // Type definitions
 interface WorkoutSlot {
@@ -17,11 +20,42 @@ interface WorkoutSlot {
   duration: number; // in minutes
 }
 
+interface WorkoutPreferences {
+  goal: string;
+  fitnessLevel: string;
+  equipment: string[];
+  workoutType: string;
+}
+
+interface WorkoutPlan {
+  title: string;
+  description: string;
+  duration: number;
+  estimatedCalories: number;
+  warmup: Exercise[];
+  mainWorkout: Exercise[];
+  cooldown: Exercise[];
+  tips: string[];
+}
+
+interface Exercise {
+  name: string;
+  sets?: number;
+  reps?: string;
+  duration?: string;
+  rest?: string;
+  instructions?: string;
+}
+
 const WorkoutScheduler: React.FC = () => {
   const { accessToken, isAuthenticated, user } = useGoogleAuth();
   const [workoutSlots, setWorkoutSlots] = useState<WorkoutSlot[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedSlot, setSelectedSlot] = useState<WorkoutSlot | null>(null);
+  const [showPreferencesModal, setShowPreferencesModal] = useState<boolean>(false);
+  const [showWorkoutPlanModal, setShowWorkoutPlanModal] = useState<boolean>(false);
+  const [generatedWorkoutPlan, setGeneratedWorkoutPlan] = useState<WorkoutPlan | null>(null);
+  const [isGeneratingWorkout, setIsGeneratingWorkout] = useState<boolean>(false);
 
   console.log('🏃 WorkoutScheduler - Auth state:', { 
     isAuthenticated, 
@@ -34,6 +68,12 @@ const WorkoutScheduler: React.FC = () => {
       findWorkoutOpportunities();
     }
   }, [isAuthenticated, accessToken]);
+
+  // Also trigger workout finding on component mount for debugging
+  useEffect(() => {
+    console.log('🚀 Component mounted, finding workouts regardless of auth state');
+    findWorkoutOpportunities();
+  }, []);
 
   const findWorkoutOpportunities = async (): Promise<void> => {
     setLoading(true);
@@ -136,22 +176,63 @@ const WorkoutScheduler: React.FC = () => {
 
   const handleSlotSelection = (slot: WorkoutSlot): void => {
     setSelectedSlot(slot);
+    setShowPreferencesModal(true);
+  };
+
+  const handleGenerateWorkout = async (preferences: WorkoutPreferences): Promise<void> => {
+    console.log('🎯 handleGenerateWorkout called!');
+    console.log('📋 Preferences received:', preferences);
+    console.log('⏰ Selected slot:', selectedSlot);
+    
+    if (!selectedSlot) {
+      console.log('❌ No selected slot!');
+      return;
+    }
+    
+    console.log('✅ Starting workout generation...');
+    
+    setShowPreferencesModal(false);
+    setIsGeneratingWorkout(true);
+    console.log('🔄 Modal closed, loading overlay should show...');
+    
+    try {
+      console.log('🧠 Calling OpenAI Workout Service...');
+      // Now using the real AI service!
+      const workoutPlan = await OpenAIWorkoutService.generateWorkout(preferences, selectedSlot);
+      
+      console.log('✅ Workout generated successfully:', workoutPlan.title);
+      
+      setGeneratedWorkoutPlan(workoutPlan);
+      setShowWorkoutPlanModal(true);
+      
+    } catch (error) {
+      console.error('❌ Error generating workout:', error);
+      Alert.alert('Error', 'Failed to generate workout. Please try again.');
+    } finally {
+      console.log('🏁 Setting isGeneratingWorkout to false...');
+      setIsGeneratingWorkout(false);
+    }
+  };
+
+  const handleStartWorkout = (): void => {
+    setShowWorkoutPlanModal(false);
     Alert.alert(
-      'Workout Time Selected',
-      `You selected ${formatTime(slot.start)} - ${formatTime(slot.end)}\n\nSuggested workout: ${getWorkoutSuggestion(slot.duration)}`,
+      'Workout Started! 💪',
+      'Great! Your workout is ready to begin. Have an amazing session!',
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Plan Workout', onPress: () => planWorkout(slot) }
+        { text: 'Let\'s Go!', onPress: () => console.log('Starting workout tracking...') }
       ]
     );
   };
 
-  const planWorkout = (slot: WorkoutSlot): void => {
-    console.log('💪 Planning workout for slot:', slot);
-    Alert.alert(
-      'Workout Planned!', 
-      `Great! Your ${getWorkoutSuggestion(slot.duration)} is scheduled for ${formatTime(slot.start)}.`
-    );
+  const handleCloseWorkoutPlan = (): void => {
+    setShowWorkoutPlanModal(false);
+    setGeneratedWorkoutPlan(null);
+  };
+
+  const handleCloseModal = (): void => {
+    setShowPreferencesModal(false);
+    setSelectedSlot(null);
   };
 
   if (!isAuthenticated) {
@@ -208,6 +289,30 @@ const WorkoutScheduler: React.FC = () => {
           ))}
         </View>
       )}
+
+      {/* Loading overlay for workout generation */}
+      {isGeneratingWorkout && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <Text style={styles.loadingTitle}>🧠 Generating Your Workout</Text>
+            <Text style={styles.loadingText}>Creating a personalized plan just for you...</Text>
+          </View>
+        </View>
+      )}
+
+      <WorkoutPreferencesModal
+        visible={showPreferencesModal}
+        slot={selectedSlot}
+        onClose={handleCloseModal}
+        onGenerateWorkout={handleGenerateWorkout}
+      />
+
+      <WorkoutPlanModal
+        visible={showWorkoutPlanModal}
+        workoutPlan={generatedWorkoutPlan}
+        onClose={handleCloseWorkoutPlan}
+        onStartWorkout={handleStartWorkout}
+      />
     </ScrollView>
   );
 };
@@ -320,6 +425,41 @@ const styles = StyleSheet.create({
   tapText: {
     fontSize: 12,
     color: '#999',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    marginHorizontal: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  loadingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });
 
