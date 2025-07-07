@@ -42,7 +42,7 @@ const useGoogleAuth = (): UseGoogleAuthReturn => {
     } else if (Platform.OS === 'android') {
       return 'YOUR_ANDROID_CLIENT_ID_HERE.apps.googleusercontent.com'; // Replace with your actual Android client ID
     } else {
-      return '818513285781-9aldvk6m3m9o7bml7fof73lne0iav5m8.apps.googleusercontent.com'; // Web client ID
+      return `${process.env.CLIENT_ID}.apps.googleusercontent.com`; // Web client ID
     }
   };
 

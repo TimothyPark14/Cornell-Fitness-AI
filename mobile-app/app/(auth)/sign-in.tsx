@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,61 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import useGoogleAuth from '@/hooks/useGoogleAuth';
+
+// This is important for mobile
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn, loading, user, isAuthenticated } = useGoogleAuth();
+
+  // Watch for successful authentication
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('User authenticated:', user.email);
+      checkUserExists(user.email);
+    }
+  }, [isAuthenticated, user]);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      console.log('Starting Google sign-in...');
+      await signIn();
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      // You could show an alert or toast message here
+    }
+  };
+
+  const checkUserExists = async (email: string) => {
+    try {
+      // Check if user exists in your system
+      const userExists = await checkIfUserExistsInDatabase(email);
+
+      if (userExists) {
+        console.log('Existing user, redirecting to profile');
+        router.replace('/(tabs)/profile' as any);
+      } else {
+        console.log('New user, redirecting to onboarding');
+        router.replace('/(auth)/onboarding' as any);
+      }
+    } catch (error) {
+      console.error('Error checking user:', error);
+    }
+  };
+
+  // TODO: Replace this with actual API call to your backend
+  const checkIfUserExistsInDatabase = async (email: string): Promise<boolean> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For demo purposes, let's say users with "existing" in their email exist
+    // In real app, this would be an API call to your backend
+    return email.includes('existing');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
@@ -43,7 +95,7 @@ export default function LoginScreen() {
             <View style={styles.formContainer}>
               <TouchableOpacity 
                 style={styles.button}
-                onPress={()=> {router.push('/google')}}
+                onPress={handleGoogleSignIn}
               >
                 <Text style={styles.buttonText}>SIGN IN WITH GOOGLE</Text>
               </TouchableOpacity>
@@ -155,4 +207,14 @@ const styles = StyleSheet.create({
     color: '#fca5a5',
     textDecorationLine: 'underline',
   },
+  textInput: {
+  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  borderRadius: 8,
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  marginBottom: 16,
+  color: 'white',
+  fontSize: 18,
+},
+
 });
