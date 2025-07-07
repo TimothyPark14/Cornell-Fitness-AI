@@ -93,6 +93,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 10,
+    marginBottom: 40,
   },
   inputContainer: {
     flexDirection: 'row',

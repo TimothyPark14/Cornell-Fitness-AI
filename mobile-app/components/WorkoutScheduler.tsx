@@ -11,7 +11,7 @@ import {
 import useGoogleAuth from '../hooks/useGoogleAuth';
 import WorkoutPreferencesModal from './WorkoutPreferencesModal';
 import WorkoutPlanModal from './WorkoutPlanModal';
-import OpenAIWorkoutService from '../services/OpenAIWorkoutService';
+import OpenAIWorkoutService from '../../backend/services/OpenAIWorkoutService';
 
 // Type definitions
 interface WorkoutSlot {
@@ -88,7 +88,7 @@ const WorkoutScheduler: React.FC = () => {
         console.log('📞 About to call Google Calendar API...');
         
         // Import CalendarService for real calendar integration
-        const CalendarService = (await import('../services/CalendarService')).default;
+        const CalendarService = (await import('../../backend/services/CalendarService')).default;
         
         try {
           console.log('📅 Calling CalendarService.findTodaysWorkoutSlots...');

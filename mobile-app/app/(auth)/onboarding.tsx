@@ -11,8 +11,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { styles } from "@/components/onboarding/styles";
 import RegisterBodyType from '@/components/onboarding/RegisterBodyType'
-import RegisterPreference from '@/components/onboarding/RegisterPreference';
-import CornellLogo from '@/components/ui/CornellLogo';
 
 const Onboarding: React.FC = () => {
   const router = useRouter()
@@ -35,8 +33,7 @@ const Onboarding: React.FC = () => {
     frequency: 0,
     time: new Date(),
   });
-  const [isFocus, setIsFocus] = useState(false);
-  const [showSubmit, setShowSubmit] = useState(false);
+  const [showSubmit, setShowSubmit] = useState(true);
 
   // const handleSubmit = () => {
   //   const { age, gender, height, weight, goal, experience, frequency, time } = formData;
@@ -90,18 +87,11 @@ const Onboarding: React.FC = () => {
             <Text style={styles.subtitle}>Never think twice about your workout</Text>
           </View>
 
-          {!showSubmit && 
             <RegisterBodyType
               setShowSubmit={setShowSubmit}
               setFormData={setFormData}
               formData={formData}
-            />}
-            {showSubmit && 
-            <RegisterPreference 
-              setShowSubmit={setShowSubmit}
-              setFormData={setFormData}
-              formData={formData}
-          />}
+            />
 
           {showSubmit && 
             <TouchableOpacity
@@ -114,7 +104,7 @@ const Onboarding: React.FC = () => {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text style={styles.submitText}>Submit</Text>
+                  <Text style={styles.submitText}>SUBMIT</Text>
                 </LinearGradient>
               </TouchableOpacity>}
 

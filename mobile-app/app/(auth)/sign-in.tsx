@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,24 +12,58 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import useGoogleAuth from '@/hooks/useGoogleAuth';
-import WorkoutScheduler from '@/components/WorkoutScheduler';
 
 // This is important for mobile
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { signIn, loading, user, isAuthenticated } = useGoogleAuth();
 
-//   const handleSignIn = async () => {
-//     // Fake login logic
-//     const user = ;
+  // Watch for successful authentication
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('User authenticated:', user.email);
+      checkUserExists(user.email);
+    }
+  }, [isAuthenticated, user]);
 
-//     if (user.isNewUser) {
-//       router.replace('/(auth)/onboarding' as any);
-//     } else {
-//       router.replace('/(tabs)/profile' as any);
-//     }
-//   };
+  const handleGoogleSignIn = async () => {
+    try {
+      console.log('Starting Google sign-in...');
+      await signIn();
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      // You could show an alert or toast message here
+    }
+  };
+
+  const checkUserExists = async (email: string) => {
+    try {
+      // Check if user exists in your system
+      const userExists = await checkIfUserExistsInDatabase(email);
+
+      if (userExists) {
+        console.log('Existing user, redirecting to profile');
+        router.replace('/(tabs)/profile' as any);
+      } else {
+        console.log('New user, redirecting to onboarding');
+        router.replace('/(auth)/onboarding' as any);
+      }
+    } catch (error) {
+      console.error('Error checking user:', error);
+    }
+  };
+
+  // TODO: Replace this with actual API call to your backend
+  const checkIfUserExistsInDatabase = async (email: string): Promise<boolean> => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // For demo purposes, let's say users with "existing" in their email exist
+    // In real app, this would be an API call to your backend
+    return email.includes('existing');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,7 +95,7 @@ export default function LoginScreen() {
             <View style={styles.formContainer}>
               <TouchableOpacity 
                 style={styles.button}
-                onPress={() => router.replace('/(auth)/onboarding' as any)}
+                onPress={handleGoogleSignIn}
               >
                 <Text style={styles.buttonText}>SIGN IN WITH GOOGLE</Text>
               </TouchableOpacity>

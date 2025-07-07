@@ -1,262 +1,455 @@
-// app/(tabs)/index.tsx - Cornell Fitness AI Main Screen
 import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  Alert,
-  SafeAreaView,
   ScrollView,
-  Image,
+  TouchableOpacity,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import useGoogleAuth from '../../hooks/useGoogleAuth';
-import WorkoutScheduler from '../../components/WorkoutScheduler';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle } from 'react-native-svg';
 
-// This is important for mobile
-WebBrowser.maybeCompleteAuthSession();
+const { width, height } = Dimensions.get('window');
 
-export default function HomeScreen() {
-  const { user, loading, signIn, signOut, isAuthenticated } = useGoogleAuth();
-
-  const handleSignIn = async () => {
-    try {
-      await signIn();
-    } catch (error) {
-      console.error('Sign in error:', error);
-      Alert.alert('Error', 'Failed to sign in. Please try again.');
-    }
+const ProfileDashboard = () => {
+  // Mock data - replace with actual user data
+  const user = {
+    name: "Yongjin Lee",
+    email: "tkp26@cornell.edu",
+    currentWeek: 8,
+    totalWeeks: 16,
+    workoutsCompleted: 24,
+    weeklyGoal: 4
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      Alert.alert('Signed Out', 'You have been signed out successfully');
-    } catch (error) {
-      console.error('Sign out error:', error);
-      Alert.alert('Error', 'Failed to sign out');
-    }
-  };
+  const weekProgress = (user.currentWeek / user.totalWeeks) * 100;
+  const weeklyProgress = (user.workoutsCompleted % user.weeklyGoal) / user.weeklyGoal * 100;
 
-  // Loading state
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // Calculate circle progress for semester weeks
+  const radius = 45;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (weekProgress / 100) * circumference;
 
-  // Authenticated user view with workout scheduler
-  if (isAuthenticated && user) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView style={styles.scrollView}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <Text style={styles.title}>Cornell Fitness AI</Text>
-              <Text style={styles.welcomeText}>Welcome back, {user.given_name}!</Text>
-            </View>
-            <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-              <Text style={styles.signOutButtonText}>Sign Out</Text>
-            </TouchableOpacity>
+  const CircularProgress = ({ progress }: { progress: number }) => (
+    <View style={styles.circularProgressContainer}>
+      <Svg width={120} height={120} viewBox="0 0 120 120">
+        {/* Background circle */}
+        <Circle
+          cx="60"
+          cy="60"
+          r={radius}
+          stroke="rgba(239, 68, 68, 0.3)"
+          strokeWidth="6"
+          fill="none"
+        />
+        {/* Progress circle */}
+        <Circle
+          cx="60"
+          cy="60"
+          r={radius}
+          stroke="#f8fafc"
+          strokeWidth="6"
+          fill="none"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform="rotate(-90 60 60)"
+        />
+      </Svg>
+      <View style={styles.circularProgressText}>
+        <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
+        <Text style={styles.progressLabel}>Complete</Text>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={['#991b1b', '#b91c1c', '#dc2626']}
+        style={styles.gradient}
+      />
+      
+      {/* Decorative Circles */}
+      <View style={[styles.decorativeCircle, styles.circle1]} />
+      <View style={[styles.decorativeCircle, styles.circle2]} />
+      <View style={[styles.decorativeCircle, styles.circle3]} />
+      <View style={[styles.decorativeCircle, styles.circle4]} />
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>CF</Text>
           </View>
+          <Text style={styles.title}>Cornell Fitness AI</Text>
+          <Text style={styles.subtitle}>Train smarter. Push harder.</Text>
+        </View>
 
-          {/* User Info Card */}
-          <View style={styles.userCard}>
-            {user.picture && (
-              <Image source={{ uri: user.picture }} style={styles.profilePicture} />
-            )}
-            <View style={styles.userInfo}>
+        {/* User Info Card */}
+        <View style={styles.card}>
+          <View style={styles.userInfo}>
+            <View style={styles.userAvatar}>
+              <Text style={styles.userAvatarText}>👤</Text>
+            </View>
+            <View style={styles.userDetails}>
               <Text style={styles.userName}>{user.name}</Text>
               <Text style={styles.userEmail}>{user.email}</Text>
-              <Text style={styles.successText}>✅ Calendar access active</Text>
             </View>
           </View>
-
-          {/* Workout Scheduler Component */}
-          <WorkoutScheduler />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  // Sign in screen for unauthenticated users
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Cornell Fitness AI</Text>
-        <Text style={styles.subtitle}>
-          Your personal fitness assistant
-        </Text>
-        
-        <View style={styles.featuresList}>
-          <Text style={styles.featuresTitle}>What we do:</Text>
-          <Text style={styles.featureItem}>📅 Analyze your calendar for free time</Text>
-          <Text style={styles.featureItem}>💪 Suggest optimal workout times</Text>
-          <Text style={styles.featureItem}>🏃 Create personalized workout plans</Text>
-          <Text style={styles.featureItem}>📍 Find nearby Cornell gym facilities</Text>
         </View>
-        
-        <TouchableOpacity 
-          style={styles.signInButton} 
-          onPress={handleSignIn}
-        >
-          <Text style={styles.buttonText}>
-            Sign in with Google
+
+        {/* Semester Progress Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderLeft}>
+              <Text style={styles.cardIcon}>📅</Text>
+              <Text style={styles.cardTitle}>Semester Progress</Text>
+            </View>
+            <Text style={styles.cardSubtitle}>Week {user.currentWeek}/{user.totalWeeks}</Text>
+          </View>
+          
+          {/* Circular Progress */}
+          <View style={styles.progressSection}>
+            <CircularProgress progress={weekProgress} />
+          </View>
+          
+          {/* Progress Bar */}
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarBackground}>
+              <View 
+                style={[
+                  styles.progressBarFill,
+                  { width: `${weekProgress}%` }
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {user.totalWeeks - user.currentWeek} weeks remaining
+            </Text>
+          </View>
+        </View>
+
+        {/* Workout Stats Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderLeft}>
+              <Text style={styles.cardIcon}>🏋️</Text>
+              <Text style={styles.cardTitle}>Workout Stats</Text>
+            </View>
+          </View>
+          
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{user.workoutsCompleted}</Text>
+              <Text style={styles.statLabel}>Total Workouts</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{user.weeklyGoal}</Text>
+              <Text style={styles.statLabel}>Weekly Goal</Text>
+            </View>
+          </View>
+          
+          {/* Weekly Progress */}
+          <View style={styles.weeklyProgress}>
+            <View style={styles.weeklyProgressHeader}>
+              <Text style={styles.weeklyProgressText}>This Week</Text>
+              <Text style={styles.weeklyProgressText}>
+                {user.workoutsCompleted % user.weeklyGoal}/{user.weeklyGoal}
+              </Text>
+            </View>
+            <View style={styles.progressBarBackground}>
+              <View 
+                style={[
+                  styles.progressBarFill,
+                  { width: `${weeklyProgress}%` }
+                ]}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Achievement Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderLeft}>
+              <Text style={styles.cardIcon}>🎯</Text>
+              <Text style={styles.cardTitle}>Achievement</Text>
+            </View>
+            <Text style={styles.achievementEmoji}>🔥</Text>
+          </View>
+          <Text style={styles.achievementText}>
+            {user.workoutsCompleted >= 20 ? "Consistency Champion!" : "Keep pushing forward!"}
           </Text>
+        </View>
+
+        {/* Action Button */}
+        <TouchableOpacity style={styles.actionButton}>
+          <LinearGradient
+            colors={['#dc2626', '#b91c1c']}
+            style={styles.actionButtonGradient}
+          >
+            <Text style={styles.actionButtonText}>START TODAY'S WORKOUT</Text>
+          </LinearGradient>
         </TouchableOpacity>
-        
-        <Text style={styles.infoText}>
-          We'll access your Google Calendar to find the best times for your workouts
-        </Text>
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#991b1b',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: height,
   },
-  loadingText: {
-    fontSize: 18,
-    color: '#fff',
+  decorativeCircle: {
+    position: 'absolute',
+    borderWidth: 1,
+    borderRadius: 9999,
+    borderColor: 'rgba(220, 38, 38, 0.3)',
+  },
+  circle1: {
+    width: 120,
+    height: 120,
+    top: 80,
+    left: 30,
+    borderColor: 'rgba(220, 38, 38, 0.3)',
+  },
+  circle2: {
+    width: 80,
+    height: 80,
+    top: 160,
+    right: 20,
+    borderColor: 'rgba(220, 38, 38, 0.2)',
+  },
+  circle3: {
+    width: 140,
+    height: 140,
+    bottom: 200,
+    left: 10,
+    borderColor: 'rgba(220, 38, 38, 0.25)',
+  },
+  circle4: {
+    width: 100,
+    height: 100,
+    bottom: 80,
+    right: 30,
+    borderColor: 'rgba(220, 38, 38, 0.2)',
   },
   scrollView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 10,
+    marginBottom: 30,
   },
-  headerContent: {
-    flex: 1,
+  logoContainer: {
+    width: 70,
+    height: 70,
+    backgroundColor: 'rgba(220, 38, 38, 0.4)',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#B31B1B',
+    color: '#ffffff',
     marginBottom: 5,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: '#fff',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,
-    color: '#888',
-    marginBottom: 40,
+    color: '#fecaca',
+    fontStyle: 'italic',
     textAlign: 'center',
-    lineHeight: 24,
   },
-  featuresList: {
-    backgroundColor: '#1a1a1a',
+  card: {
+    backgroundColor: 'rgba(153, 27, 27, 0.4)',
+    borderRadius: 24,
     padding: 20,
-    borderRadius: 12,
-    marginBottom: 40,
-    width: '100%',
-    maxWidth: 350,
-  },
-  featuresTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
     marginBottom: 15,
-    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(220, 38, 38, 0.3)',
   },
-  featureItem: {
-    fontSize: 16,
-    color: '#ccc',
-    marginBottom: 10,
-    lineHeight: 22,
-  },
-  signInButton: {
-    backgroundColor: '#4285F4',
-    paddingHorizontal: 40,
-    paddingVertical: 15,
-    borderRadius: 12,
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    marginBottom: 20,
-  },
-  signOutButton: {
-    backgroundColor: '#dc3545',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  signOutButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#888',
-    textAlign: 'center',
-    lineHeight: 20,
-    maxWidth: 300,
-  },
-  userCard: {
-    backgroundColor: '#1a1a1a',
-    margin: 20,
-    marginTop: 0,
-    padding: 20,
-    borderRadius: 12,
+  userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  profilePicture: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  userAvatar: {
+    width: 48,
+    height: 48,
+    backgroundColor: 'rgba(220, 38, 38, 0.5)',
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 15,
   },
-  userInfo: {
+  userAvatarText: {
+    fontSize: 20,
+  },
+  userDetails: {
     flex: 1,
   },
   userName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
+    color: '#ffffff',
+    marginBottom: 2,
   },
   userEmail: {
     fontSize: 14,
-    color: '#888',
+    color: '#fecaca',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: '#fecaca',
+  },
+  progressSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  circularProgressContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circularProgressText: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  progressPercentage: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  progressLabel: {
+    fontSize: 10,
+    color: '#fecaca',
+  },
+  progressBarContainer: {
+    marginTop: 10,
+  },
+  progressBarBackground: {
+    height: 6,
+    backgroundColor: 'rgba(127, 29, 29, 0.5)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#f87171',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#fecaca',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#fecaca',
+  },
+  weeklyProgress: {
+    marginTop: 10,
+  },
+  weeklyProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  successText: {
+  weeklyProgressText: {
     fontSize: 12,
-    color: '#28a745',
+    color: '#fecaca',
+  },
+  achievementEmoji: {
+    fontSize: 20,
+  },
+  achievementText: {
+    fontSize: 12,
+    color: '#fecaca',
+    marginTop: 8,
+  },
+  actionButton: {
+    marginTop: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  actionButtonGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#ffffff',
+    letterSpacing: 0.5,
   },
 });
+
+export default ProfileDashboard;

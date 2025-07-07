@@ -11,6 +11,7 @@ import {
 import { Dropdown } from 'react-native-element-dropdown';
 import { styles } from '@/components/onboarding/styles';
 import { FormDataType } from './types';
+import { goalOptions, experienceOptions, frequencyOptions, timeOptions } from '@/constants/formData';
 
 type RegisterBodyTypeProps = {
   setShowSubmit: (showSubmit: boolean) => void;
@@ -77,13 +78,81 @@ export default function RegisterBodyType({ setShowSubmit, setFormData, formData 
                     style={styles.textInput}
                     placeholderTextColor="#ccc"
                   />
+              <Dropdown
+                data={goalOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Goal"
+                value={formData.goal}
+                onChange={item => {
+                  handleInputChange('goal', item.value);
+                }}
+                style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                itemTextStyle={styles.itemTextStyle}
+                containerStyle={styles.dropdownContainer}
+                activeColor="#fff1"
+              />
+              <Dropdown
+                data={experienceOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Experience Level"
+                value={formData.experience}
+                onChange={item => {
+                  handleInputChange('experience', item.value);
+                }}
+                style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                itemTextStyle={styles.itemTextStyle}
+                containerStyle={styles.dropdownContainer}
+                activeColor="#fff1"
+              />
+              <Dropdown
+                data={frequencyOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Select Frequency"
+                value={formData.frequency}
+                onChange={item => {
+                  handleInputChange('frequency', item.value);
+                }}
+                style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                itemTextStyle={styles.itemTextStyle}
+                containerStyle={styles.dropdownContainer}
+                activeColor="#fff1"
+              />
+              <Dropdown
+                data={timeOptions}
+                maxHeight={300}
+                labelField="label"
+                valueField="value"
+                placeholder="Preferred Time"
+                value={formData.time}
+                onChange={item => {
+                  handleInputChange('time', item.value);
+                }}
+                style={[styles.dropdown, isFocus && { borderColor: '#fff' }]}
+                placeholderStyle={styles.placeholderStyle}
+                selectedTextStyle={styles.selectedTextStyle}
+                itemTextStyle={styles.itemTextStyle}
+                containerStyle={styles.dropdownContainer}
+                activeColor="#fff1"
+              />                  
                 </View>
-                  <TouchableOpacity 
+                  {/* <TouchableOpacity 
                       style={styles.subtleGoBackStyle}
                       onPress={()=>setShowSubmit(true)}
                   >
-                    <Text style={styles.subtleGoBackText}>NEXT</Text>
-                  </TouchableOpacity>
+                    <Text style={styles.subtleGoBackText}>SUBMIT</Text>
+                  </TouchableOpacity> */}
                 </View>
             </KeyboardAvoidingView>
         </SafeAreaView>

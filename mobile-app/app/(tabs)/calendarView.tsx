@@ -33,14 +33,14 @@ export default function CalendarView() {
               <Calendar
                 events={week_events}
                 height={600}
-                mode="week"   // ← this enables weekly view
+                mode="week"
                 minHour={7}
                 maxHour={21}
                 onPressEvent={(event)=>{
                   console.log('Event pressed:', event);
                 }}
                 eventCellStyle={{
-                  backgroundColor: 'rgba(208, 117, 117, 0.3)'}}
+                  backgroundColor: 'rgba(204, 204, 204, 0.3)'}}
               />
             </View>
           </KeyboardAvoidingView>
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.64)'
+    backgroundColor: 'rgb(255, 255, 255)'
   },
   header: {
     alignItems: 'center',
