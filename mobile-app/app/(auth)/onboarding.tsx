@@ -11,9 +11,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { styles } from "@/components/onboarding/styles";
 import RegisterBodyType from '@/components/onboarding/RegisterBodyType'
+import useGoogleAuth from '@/hooks/useGoogleAuth';
 
 const Onboarding: React.FC = () => {
   const router = useRouter()
+  const { user } = useGoogleAuth()
   const [formData, setFormData] = useState<{
     age: number;
     gender: string;
@@ -35,33 +37,21 @@ const Onboarding: React.FC = () => {
   });
   const [showSubmit, setShowSubmit] = useState(true);
 
-  // const handleSubmit = () => {
-  //   const { age, gender, height, weight, goal, experience, frequency, time } = formData;
 
-  //   // Convert height/weight to numbers
-  //   const parsedAge = Number(age);
-  //   const parsedHeight = Number(height);
-  //   const parsedWeight = Number(weight);
-
-  //   // ✅ Basic validation
-  //   if (!parsedAge || !parsedHeight || !parsedWeight || !gender) {
-  //     alert("Please fill out all fields correctly.");
-  //     return;
-  //   }
-  //   if (!user || !user.email) {
-  //     alert("Something went wrong. User not found.");
-  //     return;}
-  //   // ✅ Now update the user object
-    
-  //   setUser({
-  //     ...(user ?? {}),
-  //     age: parsedAge,
-  //     gender: gender as 'male' | 'female',
-  //     height: parsedHeight,
-  //     weight: parsedWeight,
-  //   });
-  //   console.log("User updated in context:", user.email, user.age, user.gender, user.height, user.weight); 
-  // };
+  // Create POST request to backend to upload user information to database
+  const handleSubmit = () => {
+    const { age, gender, height, weight, goal, experience, frequency, time } = formData;
+    const email = user?.email;
+    fetch('http://localhost:3000/api/userInfo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email, age, gender, height, weight, goal, experience, frequency, time
+      })
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,6 +87,7 @@ const Onboarding: React.FC = () => {
             <TouchableOpacity
                 style={styles.submitButton}
                 activeOpacity={0.9}
+                onPress={handleSubmit}
               >
                 <LinearGradient
                   colors={['#ffffff', '#fef2f2']}
