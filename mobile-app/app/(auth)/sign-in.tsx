@@ -41,7 +41,8 @@ export default function LoginScreen() {
   const checkUserExists = async (email: string) => {
     try {
       // Check if user exists in your system
-      const userExists = await checkIfUserExistsInDatabase(email);
+      // const userExists = await checkIfUserExistsInDatabase(email);
+      const userExists = true;
 
       if (userExists) {
         console.log('Existing user, redirecting to profile');

@@ -1,53 +1,77 @@
-import { Calendar } from 'react-native-big-calendar';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  Animated,
+  Dimensions,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import week_events from '@/assets/data/weekly-schedule'
+import { Calendar } from 'react-native-big-calendar';
+import week_events from '@/assets/data/weekly-schedule';
+import WorkoutPlan from '@/components/workout/WorkoutPlan';
+import { Background } from '@react-navigation/elements';
 
 export default function CalendarView() {
+  const [showWorkout, setShowWorkout] = useState(false);
+  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+  // Animate slide up when showWorkout becomes true
+  useEffect(() => {
+    if (showWorkout) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showWorkout]);
+
   return (
-      <SafeAreaView style={styles.container}>
-        <LinearGradient
-          colors={['#7f1d1d', '#991b1b', '#374151']}
-          style={styles.gradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardView}
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        {/* Calendar */}
+        {!showWorkout && (
+          <View style={styles.content}>
+            <Calendar
+              events={week_events}
+              height={600}
+              mode="week"
+              minHour={6}
+              maxHour={21}
+              onPressEvent={(event) => {
+                console.log('Event pressed:', event);
+                if (event.isWorkout) setShowWorkout(true);
+              }}
+              eventCellStyle={(event) =>
+                event.isWorkout
+                  ? { backgroundColor: 'rgb(237, 40, 40)' }
+                  : { backgroundColor: 'rgb(196, 196, 196)' }
+              }
+              swipeEnabled={false}
+              headerContainerStyle={{ backgroundColor: '#B31B1B' }} // ← changes the header background
+              weekDayHeaderHighlightColor="#fff" // optional: highlight current weekday
+            />
+          </View>
+        )}
+
+        {/* Animated Workout View */}
+        {showWorkout && (
+          <Animated.View
+            style={[
+              styles.workout_content,
+              { transform: [{ translateY: slideAnim }] },
+            ]}
           >
-            <View style={styles.backgroundDecoration}>
-              <View style={[styles.circle, styles.circle1]} />
-              <View style={[styles.circle, styles.circle2]} />
-              <View style={[styles.circle, styles.circle3]} />
-            </View>
-  
-            <View style={styles.content}>
-              <Calendar
-                events={week_events}
-                height={600}
-                mode="week"
-                minHour={7}
-                maxHour={21}
-                onPressEvent={(event)=>{
-                  console.log('Event pressed:', event);
-                }}
-                eventCellStyle={{
-                  backgroundColor: 'rgba(204, 204, 204, 0.3)'}}
-              />
-            </View>
-          </KeyboardAvoidingView>
-        </LinearGradient>
-      </SafeAreaView>
-    
-  
+            <WorkoutPlan setShowWorkout={setShowWorkout} />
+          </Animated.View>
+        )}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -77,6 +101,11 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     backgroundColor: 'rgb(255, 255, 255)'
   },
+  workout_content: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
   header: {
     alignItems: 'center',
     marginBottom: 32,
