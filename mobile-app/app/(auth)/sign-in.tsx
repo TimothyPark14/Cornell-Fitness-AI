@@ -55,14 +55,15 @@ export default function LoginScreen() {
     }
   };
 
-  // TODO: Replace this with actual API call to your backend
   const checkIfUserExistsInDatabase = async (email: string): Promise<boolean> => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For demo purposes, let's say users with "existing" in their email exist
-    // In real app, this would be an API call to your backend
-    return email.includes('existing');
+    const response = await fetch('http://localhost:3000/api/checkExistence', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+    return data.exists;
   };
 
   return (

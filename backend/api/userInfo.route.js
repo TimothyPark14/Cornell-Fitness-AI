@@ -1,39 +1,19 @@
+// routes/user.js
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const router = express.Router();
+const UserPreferences = require('../model/UserSchema.ts');
 
-router.post('/', (req, res) => {
-  const data = req.body;
-  const dirPath = path.join(__dirname, '../data');
-  const filePath = path.join(dirPath, 'userInfo.json');
-  console.log('POST /api/userInfo hit:', req.body)
-  // Ensure the data directory exists
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-
-  // Read existing data (if any)
-  let existing = [];
-  if (fs.existsSync(filePath)) {
-    try {
-      const raw = fs.readFileSync(filePath);
-      existing = JSON.parse(raw);
-    } catch (e) {
-      existing = [];
-    }
-  }
-
-  // Add new data
-  existing.push(data);
-
-  // Write back to file with error handling
+// Send and save new user data to database
+router.post('/', async (req, res) => {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
-    res.json({ status: 'saved', data });
-  } catch (err) {
-    console.error('Error writing file:', err);
-    res.status(500).json({ status: 'error', error: err.message });
+    const { email, age, gender, height, weight, goal, experience, frequency, time } = req.body;
+    const user = new UserPreferences({ email, age, gender, height, weight, goal, experience, frequency, time });
+    await user.save(); // save to MongoDB
+
+    res.status(201).json({ message: 'User saved', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to save user' });
   }
 });
 
