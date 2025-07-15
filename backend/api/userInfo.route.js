@@ -4,7 +4,7 @@ const router = express.Router();
 const UserPreferences = require('../model/UserSchema.ts');
 
 // Send and save new user data to database
-router.post('/', async (req, res) => {
+router.post('/userInfo', async (req, res) => {
   try {
     const { email, age, gender, height, weight, goal, experience, frequency, time } = req.body;
     const user = new UserPreferences({ email, age, gender, height, weight, goal, experience, frequency, time });

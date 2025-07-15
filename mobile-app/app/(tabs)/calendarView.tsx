@@ -1,183 +1,251 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState} from 'react';
 import {
   View,
+  Text,
   StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
-  Dimensions,
+  FlatList,
+  Pressable,
 } from 'react-native';
-import { Calendar } from 'react-native-big-calendar';
-import week_events from '@/assets/data/weekly-schedule';
-import WorkoutPlan from '@/components/workout/WorkoutPlan';
-import { Background } from '@react-navigation/elements';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import CornellWorkoutModal from '@/components/workout/WorkoutPlan';
 
-export default function CalendarView() {
-  const [showWorkout, setShowWorkout] = useState(false);
-  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
-
-  // Animate slide up when showWorkout becomes true
-  useEffect(() => {
-    if (showWorkout) {
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [showWorkout]);
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        {/* Calendar */}
-        {!showWorkout && (
-          <View style={styles.content}>
-            <Calendar
-              events={week_events}
-              height={600}
-              mode="week"
-              minHour={6}
-              maxHour={21}
-              onPressEvent={(event) => {
-                console.log('Event pressed:', event);
-                if (event.isWorkout) setShowWorkout(true);
-              }}
-              eventCellStyle={(event) =>
-                event.isWorkout
-                  ? { backgroundColor: 'rgb(237, 40, 40)' }
-                  : { backgroundColor: 'rgb(196, 196, 196)' }
-              }
-              swipeEnabled={false}
-              headerContainerStyle={{ backgroundColor: '#B31B1B' }} // ← changes the header background
-              weekDayHeaderHighlightColor="#fff" // optional: highlight current weekday
-            />
-          </View>
-        )}
-
-        {/* Animated Workout View */}
-        {showWorkout && (
-          <Animated.View
-            style={[
-              styles.workout_content,
-              { transform: [{ translateY: slideAnim }] },
-            ]}
-          >
-            <WorkoutPlan setShowWorkout={setShowWorkout} />
-          </Animated.View>
-        )}
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+interface WorkoutSession {
+  date: string;              // e.g. "September 19th, Monday"
+  title: string;             // e.g. "Push Day"
+  location: string;          // e.g. "Teagle"
+  startTime: string;         // e.g. "1:30 PM"
+  endTime: string;           // e.g. "3:00 PM"
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  gradient: { flex: 1 },
-  keyboardView: { flex: 1 },
-  backgroundDecoration: {
-    position: 'absolute',
-    top: 0, bottom: 0, left: 0, right: 0,
+// const getWorkouts = await getWorkout()
+// For now, loop in a static workout
+const dummyWorkouts: WorkoutSession[] = [
+  {
+    date: "September 19th, Monday",
+    title: "Push Day",
+    location: "Tim's Dorm",
+    startTime: "1:30 PM",
+    endTime: "3:00 PM"
   },
-  circle: {
+  {
+    date: "September 20th, Tuesday",
+    title: "Pull Day",
+    location: "Helen Newman",
+    startTime: "12:00 PM",
+    endTime: "1:15 PM"
+  },
+  {
+    date: "September 21st, Wednesday",
+    title: "Leg Day",
+    location: "Teagle",
+    startTime: "2:30 PM",
+    endTime: "3:45 PM"
+  },
+  {
+    date: "September 22nd, Wednesday",
+    title: "Leg Day",
+    location: "Teagle",
+    startTime: "2:30 PM",
+    endTime: "3:45 PM"
+  },
+  {
+    date: "September 23rd, Wednesday",
+    title: "Leg Day",
+    location: "Teagle",
+    startTime: "2:30 PM",
+    endTime: "3:45 PM"
+  },
+  {
+    date: "September 24th, Wednesday",
+    title: "Leg Day",
+    location: "Teagle",
+    startTime: "2:30 PM",
+    endTime: "3:45 PM"
+  }
+];
+
+const WeeklyWorkout = () => {
+  const [showModal, setShowModal] = useState(false)
+  return (
+    <View style={styles.container}>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={['#7f1d1d', '#991b1b', '#dc2626']}
+        style={styles.gradient}
+      />
+
+      
+      {/* Decorative Circles */}
+      <View style={[styles.decorativeCircle, styles.circle1]} />
+      <View style={[styles.decorativeCircle, styles.circle2]} />
+      <View style={[styles.decorativeCircle, styles.circle3]} />
+      <View style={[styles.decorativeCircle, styles.circle4]} />
+      
+      <Text style={styles.title}>Week 6 of Fall 2025</Text>
+      <FlatList
+        style={styles.flatList}
+        data={dummyWorkouts}
+        keyExtractor={(item) => item.date}
+        renderItem={({ item }) => (
+          <View 
+            style={styles.cardContainer}
+          >
+            <Text style={styles.date}>{item.date}</Text>
+            <Pressable 
+              style={styles.card}
+              onPress={()=>setShowModal(true)}  
+            >
+              <Text style={styles.weekHeader}>{item.title}</Text>
+              <View style={styles.detailsRow}>
+                <MaterialCommunityIcons name="map-marker" size={18} color="red" />
+                <Text style={styles.detailText}>@ {item.location}</Text>
+              </View>
+              <View style={styles.detailsRow}>
+                <MaterialCommunityIcons name="clock-time-four" size={18} color="gray" />
+                <Text style={styles.detailText}>
+                  {item.startTime} - {item.endTime}
+                </Text>
+              </View>
+            </Pressable>
+
+          <CornellWorkoutModal
+            showModal={showModal}
+            setShowModal={setShowModal}
+          />
+
+          </View>
+        )}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#b91c1b',
+    padding: 20,
+    paddingTop: 70,
+    paddingBottom: 60,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    zIndex: -10,
+  },
+  decorativeCircle: {
     position: 'absolute',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 50,
+    borderRadius: 9999,
+    borderColor: 'rgba(220, 38, 38, 0.3)',
+    zIndex: -5,
   },
-  circle1: { width: 100, height: 100, top: 80, left: 50 },
-  circle2: { width: 80, height: 80, bottom: 120, right: 40 },
-  circle3: { width: 60, height: 60, top: '50%', left: 20 },
-
-  content: {
+circle1: {
+  width: 140,
+  height: 140,
+  top: 80,
+  left: 30,
+  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  shadowColor: '#ffffff',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.2,
+  shadowRadius: 10,
+},
+  circle2: {
+    width: 80,
+    height: 80,
+    top: 160,
+    right: 20,
+    borderColor: 'rgba(220, 38, 38, 0.2)',
+  },
+  circle3: {
+    width: 140,
+    height: 140,
+    bottom: 200,
+    left: 10,
+    borderColor: 'rgba(220, 38, 38, 0.25)',
+  },
+  circle4: {
+    width: 100,
+    height: 100,
+    bottom: 80,
+    right: 30,
+    borderColor: 'rgba(220, 38, 38, 0.2)',
+  },
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
-    backgroundColor: 'rgb(255, 255, 255)'
   },
-  workout_content: {
-    flex: 1,
-    justifyContent: 'center',
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 30,
   },
-  logoContainer: {
-    width: 64,
-    height: 64,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 20,
+title: {
+  fontSize: 34,
+  fontWeight: '900',
+  color: '#fff',
+  marginBottom: 20,
+  textAlign: 'center',
+  letterSpacing: 1,
+},
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 15,
+    shadowColor: '#7f1d1d', // Deep Cornell red
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 15,
   },
-  logoText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 35,
-    fontWeight: 'bold',
+weekHeader: {
+  fontSize: 22,
+  fontWeight: '700',
+  color: '#7f1d1d',
+  marginBottom: 12,
+},
+  cardContainer: {
+    marginBottom: 20,
+  },
+  date: {
+    fontSize: 16,
+    fontWeight: '500',
     color: '#fff',
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(254,202,202,0.9)',
-    fontStyle: 'italic',
-  },
-  tagline: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 6,
-    paddingHorizontal: 20,
-  },
-
-  formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    marginTop: 24,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  button: {
-    backgroundColor: '#dc2626',
-    borderRadius: 12,
-    paddingVertical: 16,
+  detailsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 4,
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  terms: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 12,
-  },
-  link: {
-    color: '#fca5a5',
-    textDecorationLine: 'underline',
-  },
+detailText: {
+  marginLeft: 6,
+  color: '#1f2937', // slate gray
+  fontSize: 15,
+},
+  flatList: {
+    marginTop: 30
+  }
 });
+
+export default WeeklyWorkout;

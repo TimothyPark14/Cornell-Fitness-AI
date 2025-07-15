@@ -211,6 +211,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#991b1b',
+    paddingBottom: 60,
   },
   gradient: {
     position: 'absolute',
