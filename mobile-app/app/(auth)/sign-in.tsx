@@ -24,6 +24,7 @@ export default function LoginScreen() {
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log('User authenticated:', user.email);
+      console.log('User information: ', user)
       checkUserExists(user.email);
     }
   }, [isAuthenticated, user]);
@@ -97,7 +98,7 @@ export default function LoginScreen() {
             <View style={styles.formContainer}>
               <TouchableOpacity 
                 style={styles.button}
-                onPress={handleGoogleSignIn}
+                onPress={()=>handleGoogleSignIn()}
               >
                 <Text style={styles.buttonText}>SIGN IN WITH GOOGLE</Text>
               </TouchableOpacity>
