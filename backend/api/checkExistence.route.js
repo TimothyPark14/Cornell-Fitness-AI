@@ -13,4 +13,4 @@ router.get('/users/:email', async (req, res) => {
   res.status(200).json(user);
 });
 
-moduel.exports = router;
+module.exports = router;

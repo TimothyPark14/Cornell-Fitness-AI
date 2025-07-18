@@ -17,6 +17,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "luxon": "^3.7.1",
+    "path-browserify": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.6.2",
+    "@types/node": "^24.0.14"
   }
 }
