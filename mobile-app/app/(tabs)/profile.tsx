@@ -193,15 +193,6 @@ const ProfileDashboard = () => {
           </Text>
         </View>
 
-        {/* Action Button */}
-        <TouchableOpacity style={styles.actionButton}>
-          <LinearGradient
-            colors={['#dc2626', '#b91c1c']}
-            style={styles.actionButtonGradient}
-          >
-            <Text style={styles.actionButtonText}>START TODAY'S WORKOUT</Text>
-          </LinearGradient>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );

@@ -1,4 +1,4 @@
-import { insertPreferredSlots } from '../services/findBestTime.ts';
+import { insertPreferredSlots } from '../services/findBestTime';
 import { DateTime } from 'luxon';
 
 const tz = 'America/New_York';

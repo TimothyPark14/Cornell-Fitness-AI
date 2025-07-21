@@ -1,13 +1,14 @@
 // routes/user.js
-const express = require('express');
+import express from 'express';
+import User from '../model/UserSchema.ts'; // make sure the path/extension is correct if it's a TS/JS file
+
 const router = express.Router();
-const UserPreferences = require('../model/UserSchema.ts');
 
 // Send and save new user data to database
 router.post('/userInfo', async (req, res) => {
   try {
     const { email, age, gender, height, weight, goal, experience, frequency, time } = req.body;
-    const user = new UserPreferences({ email, age, gender, height, weight, goal, experience, frequency, time });
+    const user = new User({ email, age, gender, height, weight, goal, experience, frequency, time });
     await user.save(); // save to MongoDB
 
     res.status(201).json({ message: 'User saved', user });
@@ -17,4 +18,4 @@ router.post('/userInfo', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router

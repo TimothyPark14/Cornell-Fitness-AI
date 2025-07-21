@@ -11,16 +11,19 @@ export async function optimizeSchedule(userDoc: IUserPreferences, accessToken: s
         const { frequency, time } = userDoc;
         // Step 1: Get calendar events from Google Calendar
         const rawEvents = await calendarService.getWeeksSchedule(accessToken); 
+      
         // Step 2: Clean and format the events
         const cleanedEvents = cleanEvents(rawEvents);
         // Step 3: Find optimal time slots based on user's schedule and preferences
-        const optimizedLocation = await insertPreferredSlots(
+      
+        const prefTime = DateTime.fromJSDate(time, {zone: 'America/New_York'})
+        const optimizedTime = await insertPreferredSlots(
             cleanedEvents, 
-            DateTime.fromJSDate(new Date(time)), // Convert Date to DateTime
+            prefTime,
             frequency
         );
         // Step 4: Optimize gym locations based on where student needs to be next
-        const optimizedGymEvents = optimizeGymLocations(
+        const optimizedGymEvents = optimzedTime(
             optimizedLocation,
             {
                 // Add user equipment preferences if available
@@ -32,11 +35,7 @@ export async function optimizeSchedule(userDoc: IUserPreferences, accessToken: s
         const workoutPlan = await getOpenAIWorkout(optimizedGymEvents, userDoc);
         // Optional: Save the workout plan to database
         // await saveWorkoutPlan(userDoc._id, optimizedGymEvents, workoutPlan);
-        return {
-            success: true,
-            schedule: optimizedGymEvents,
-            workoutDetails: workoutPlan
-        };
+        return workoutPlan
     } catch (error) {
         console.error('Error optimizing schedule:', error);
         throw new Error('Failed to optimize workout schedule');
