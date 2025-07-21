@@ -18,5 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "concurrently": "^9.1.2"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.6.2"
   }
 }

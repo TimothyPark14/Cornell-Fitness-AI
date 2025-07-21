@@ -13,15 +13,14 @@ export async function optimizeSchedule(userDoc: IUserPreferences, accessToken: s
     const rawEvents = await calendarService.getWeeksSchedule(accessToken);
     const cleanedEvents = cleanEvents(rawEvents);
 
-    const optimizedEvents = await insertPreferredSlots(cleanedEvents, new DateTime(time), frequency);
+    const prefTime = DateTime.fromJSDate(time, {zone: 'America/New_York'})
+    console.log('Preferred time converted into ET: ', prefTime)
 
-    // const optimizedLocation = await optimalLocation(optimizedEvents)
-    // Optional: use OpenAI to generate personalized workouts
+    const optimizedEvents = await insertPreferredSlots(cleanedEvents, prefTime, frequency);
 
-    const openaiResponse = await getOpenAIWorkout(optimizedEvents, userDoc);
+    // const optimizeLocation = await optimalLocation(optimizedEvents)
 
+    const openaiResponse = await getOpenAIWorkout(optimizedEvents); // add , userDoc
 
     return openaiResponse;
 }
-
-

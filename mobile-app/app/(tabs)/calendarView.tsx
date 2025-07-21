@@ -7,116 +7,89 @@ import {
   Pressable,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { LinearGradient } from 'expo-linear-gradient';
 import CornellWorkoutModal from '@/components/workout/WorkoutPlan';
-
-interface WorkoutSession {
-  date: string;              // e.g. "September 19th, Monday"
-  title: string;             // e.g. "Push Day"
-  location: string;          // e.g. "Teagle"
-  startTime: string;         // e.g. "1:30 PM"
-  endTime: string;           // e.g. "3:00 PM"
-}
-
-// const getWorkouts = await getWorkout()
-// For now, loop in a static workout
-const dummyWorkouts: WorkoutSession[] = [
-  {
-    date: "September 19th, Monday",
-    title: "Push Day",
-    location: "Tim's Dorm",
-    startTime: "1:30 PM",
-    endTime: "3:00 PM"
-  },
-  {
-    date: "September 20th, Tuesday",
-    title: "Pull Day",
-    location: "Helen Newman",
-    startTime: "12:00 PM",
-    endTime: "1:15 PM"
-  },
-  {
-    date: "September 21st, Wednesday",
-    title: "Leg Day",
-    location: "Teagle",
-    startTime: "2:30 PM",
-    endTime: "3:45 PM"
-  },
-  {
-    date: "September 22nd, Wednesday",
-    title: "Leg Day",
-    location: "Teagle",
-    startTime: "2:30 PM",
-    endTime: "3:45 PM"
-  },
-  {
-    date: "September 23rd, Wednesday",
-    title: "Leg Day",
-    location: "Teagle",
-    startTime: "2:30 PM",
-    endTime: "3:45 PM"
-  },
-  {
-    date: "September 24th, Wednesday",
-    title: "Leg Day",
-    location: "Teagle",
-    startTime: "2:30 PM",
-    endTime: "3:45 PM"
-  }
-];
+import { getWorkout } from '@/scripts/getWorkout'
+import EmptyWorkoutFallback from '@/components/workout/EmptyWorkoutList'
+import { ScheduleResponse } from '@/types/workout' 
 
 const WeeklyWorkout = () => {
+  const [workoutsList, setWorkoutsList] = useState<ScheduleResponse[]>([]);
+  const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false)
+  const [selectedWorkout, setSelectedWorkout] = useState<ScheduleResponse | undefined>(undefined);
+
+  const generateWorkouts = async () => {
+    setLoading(true);
+    try {
+      const newWorkouts = await getWorkout();   // returns WorkoutSession[]
+      setWorkoutsList(newWorkouts);
+    } catch (err) {
+      console.error("Failed to fetch AI workouts", err);
+      // optionally show error UI
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const renderWorkoutItem = ({ item }: { item: ScheduleResponse }) => (
+    <View style={styles.cardContainer}>
+      <Pressable
+        style={styles.card}
+        onPress={() => {
+          setSelectedWorkout(item);
+          setShowModal(true);
+        }}>
+        <Text style={styles.weekHeader}>{item.title}</Text>
+        <View style={styles.detailsRow}>
+          <FontAwesome6 name="calendar-check" size={18} color="gray" />
+          <Text style={styles.detailText}>{item.startTime.toFormat("LLLL d, cccc")}</Text>
+        </View>
+        <View style={styles.detailsRow}>
+          <MaterialCommunityIcons name="map-marker" size={18} color="red" />
+          <Text style={styles.detailText}>{item.location}</Text>
+        </View>
+        <View style={styles.detailsRow}>
+          <MaterialCommunityIcons name="clock-time-four" size={18} color="gray" />
+          <Text style={styles.detailText}>
+            {item.startTime.toFormat("h:mm a")}~{item.endTime.toFormat("h:mm a")}
+          </Text>
+        </View>
+      </Pressable>
+      {selectedWorkout && (
+        <CornellWorkoutModal
+          selectedWorkout={selectedWorkout}
+          showModal={showModal}
+          setShowModal={setShowModal}
+        />
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.container}>
-      {/* Background Gradient */}
       <LinearGradient
         colors={['#7f1d1d', '#991b1b', '#dc2626']}
         style={styles.gradient}
       />
 
-      
       {/* Decorative Circles */}
       <View style={[styles.decorativeCircle, styles.circle1]} />
       <View style={[styles.decorativeCircle, styles.circle2]} />
       <View style={[styles.decorativeCircle, styles.circle3]} />
       <View style={[styles.decorativeCircle, styles.circle4]} />
-      
-      <Text style={styles.title}>Week 6 of Fall 2025</Text>
-      <FlatList
-        style={styles.flatList}
-        data={dummyWorkouts}
-        keyExtractor={(item) => item.date}
-        renderItem={({ item }) => (
-          <View 
-            style={styles.cardContainer}
-          >
-            <Text style={styles.date}>{item.date}</Text>
-            <Pressable 
-              style={styles.card}
-              onPress={()=>setShowModal(true)}  
-            >
-              <Text style={styles.weekHeader}>{item.title}</Text>
-              <View style={styles.detailsRow}>
-                <MaterialCommunityIcons name="map-marker" size={18} color="red" />
-                <Text style={styles.detailText}>@ {item.location}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <MaterialCommunityIcons name="clock-time-four" size={18} color="gray" />
-                <Text style={styles.detailText}>
-                  {item.startTime} - {item.endTime}
-                </Text>
-              </View>
-            </Pressable>
-
-          <CornellWorkoutModal
-            showModal={showModal}
-            setShowModal={setShowModal}
-          />
-
-          </View>
-        )}
-      />
+    {
+    workoutsList.length === 0 ? (
+      <EmptyWorkoutFallback onGenerate={generateWorkouts} loading={loading}/>) : (
+    <FlatList
+      style={styles.flatList}
+      data={workoutsList}
+      keyExtractor={(item) => item.startTime.day.toString()}
+      renderItem={renderWorkoutItem}
+    />
+    )}
     </View>
   );
 };

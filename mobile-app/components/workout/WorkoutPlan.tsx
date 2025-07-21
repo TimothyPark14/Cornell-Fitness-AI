@@ -1,30 +1,27 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Clock, MapPin, Dumbbell, CheckCircle, Trophy, Play, Minimize2 } from 'lucide-react-native';
+import { CheckCircle, Trophy, Play, Minimize2 } from 'lucide-react-native';
+import { StyleSheet } from 'react-native'
+import { ScheduleResponse } from '@/types/workout'
 
 type WorkoutModalProps = {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
-  workoutTitle?: string;
-  location?: string;
-  duration?: number;
   equipment?: string[];
   onFinishWorkout?: () => void;
+  selectedWorkout: ScheduleResponse;
 };
 
 const CornellWorkoutModal = ({
-  workoutTitle = "Testing Workout",
-  location = "Testing Gym Location",
   onFinishWorkout = () => {},
   showModal,
   setShowModal,
+  selectedWorkout
 }: WorkoutModalProps) => {
-  const [completedExercises, setCompletedExercises] = useState(new Set<number>());
+  const [completedExercises, setCompletedExercises] = useState(new Set<string>());
   const [workoutStarted, setWorkoutStarted] = useState(false);
-  const [semesterWorkouts, setSemesterWorkouts] = useState(12);
 
-  const exercises = ['0', '0', '0']
-  const toggleExerciseComplete = (id: number) => {
+  const toggleExerciseComplete = (id: string) => {
     const updated = new Set(completedExercises);
     if (updated.has(id)) {
       updated.delete(id);
@@ -35,11 +32,10 @@ const CornellWorkoutModal = ({
   };
 
   const handleFinishWorkout = () => {
-    if (completedExercises.size === exercises.length) {
-      setSemesterWorkouts(prev => prev + 1);
+    if (completedExercises.size === selectedWorkout.exercises.length) {
       Alert.alert(
         "Workout Complete! 🎉",
-        `Great job finishing your workout!\nTotal workouts this semester: ${semesterWorkouts + 1}`,
+        `Great job finishing your workout!`,
         [{ text: "OK", onPress: () => {
           onFinishWorkout()
           setShowModal(false)
@@ -48,14 +44,12 @@ const CornellWorkoutModal = ({
     } else {
       Alert.alert(
         "Workout Incomplete",
-        `You've completed ${completedExercises.size} of ${exercises.length} exercises. Finish anyway?`,
+        `You've completed ${completedExercises.size} of ${selectedWorkout.exercises.length} exercises. Finish anyway?`,
         [
           { text: "Continue Workout", style: "cancel" },
           {
             text: "Finish Anyway",
             onPress: () => {
-              setSemesterWorkouts(prev => prev + 1);
-              onFinishWorkout();
               setShowModal(false)
             }
           }
@@ -65,14 +59,12 @@ const CornellWorkoutModal = ({
     
   };
 
-  const progressPercentage = (completedExercises.size / exercises.length) * 100;
-
   return (
     <Modal visible={showModal} animationType="slide" onRequestClose={()=>setShowModal(false)}>
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{workoutTitle}</Text>
+          <Text style={styles.title}>{selectedWorkout.title}</Text>
           <View style={styles.brandContainer}>
             <Text style={styles.brandText}>Cornell Fitness AI</Text>
           </View>
@@ -81,20 +73,7 @@ const CornellWorkoutModal = ({
         {/* Info */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <MapPin color="#B31B1B" size={20} />
-            <Text style={styles.infoText}>{location}</Text>
-          </View>
-        </View>
-
-        {/* Progress */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressText}>
-              Progress: {completedExercises.size} / {exercises.length}
-            </Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
+            <Text style={styles.title}>{selectedWorkout.title}</Text>
           </View>
         </View>
 
@@ -110,7 +89,10 @@ const CornellWorkoutModal = ({
         )}
 
         <TouchableOpacity
-          onPress={()=>setShowModal(false)}
+          onPress={()=>{
+            setWorkoutStarted(false)
+            setShowModal(false)}
+          }
           style={styles.exitButton}
         >
           <Minimize2 color="white" size={24} />
@@ -121,30 +103,29 @@ const CornellWorkoutModal = ({
         {workoutStarted && (
           <View style={styles.exerciseContainer}>
             <Text style={styles.sectionTitle}>Today's Exercises</Text>
-            {exercises.map((exercise) => (
+            {selectedWorkout.exercises.map((exercise) => (
               <TouchableOpacity
-                key={exercise.id}
-                onPress={() => toggleExerciseComplete(exercise.id)}
+                key={exercise.name}
+                onPress={() => toggleExerciseComplete(exercise.name)}
                 style={[
                   styles.exerciseCard,
-                  completedExercises.has(exercise.id) && styles.exerciseCardCompleted
+                  completedExercises.has(exercise.name) && styles.exerciseCardCompleted
                 ]}
               >
                 <View style={styles.exerciseHeader}>
                   <Text style={[
                     styles.exerciseName,
-                    completedExercises.has(exercise.id) && styles.exerciseNameCompleted
+                    completedExercises.has(exercise.name) && styles.exerciseNameCompleted
                   ]}>
                     {exercise.name}
                   </Text>
-                  {completedExercises.has(exercise.id) && (
+                  {completedExercises.has(exercise.name) && (
                     <CheckCircle color="#B31B1B" size={24} />
                   )}
                 </View>
                 <View style={styles.exerciseDetails}>
-                  <Text style={styles.exerciseDetail}>Sets: {exercise.sets}</Text>
+                  <Text style={styles.exerciseDetail}>Sets: {exercise.set}</Text>
                   <Text style={styles.exerciseDetail}>Reps: {exercise.reps}</Text>
-                  <Text style={styles.exerciseDetail}>Rest: {exercise.rest}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -157,7 +138,7 @@ const CornellWorkoutModal = ({
             onPress={handleFinishWorkout}
             style={[
               styles.finishButton,
-              completedExercises.size === exercises.length
+              completedExercises.size === selectedWorkout.exercises.length
                 ? styles.finishButtonActive
                 : styles.finishButtonInactive
             ]}
@@ -178,7 +159,7 @@ const CornellWorkoutModal = ({
 
 
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -219,11 +200,11 @@ const styles = {
   infoRow: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   infoText: {
     color: '#374151',
-    fontWeight: '500',
+    fontWeight: '800',
     marginLeft: 12,
     flex: 1,
   },
@@ -363,7 +344,7 @@ const styles = {
     justifyContent: 'center',
     marginBottom: 16,
   }
-};
+});
 
 
 export default CornellWorkoutModal;

@@ -1,18 +1,20 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const app = express();
-const PORT = process.env.PORT || 3000;
-const mongoose = require('mongoose')
+import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import userInfoRoute from './api/userInfo.route.js';
+import testOpenAI from './api/testOpenAI.route.js'
+
 dotenv.config();
 
-const userInfoRoute = require('./api/userInfo.route');
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use('/api', userInfoRoute);
+app.use('/api', testOpenAI)
 
 // Basic route
 app.get('/', (req, res) => {
